@@ -1,6 +1,5 @@
 import os
 import shutil
-
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from datetime import datetime
@@ -16,11 +15,17 @@ class OrganizadorPorDataHandler(FileSystemEventHandler):
 
     def organizar_arquivo(self, caminho_arquivo):
         # Obter o nome do arquivo e sua data de modificação
+        nome_arquivo = os.path.basename(caminho_arquivo)
+        data_modificacao = self.obter_data_modificacao(caminho_arquivo)
         
         # Criar a pasta de destino com base na data
+        pasta_destino = os.path.join(self.pasta_monitorada, data_modificacao)
+        os.makedirs(pasta_destino, exist_ok=True)
         
         # Mover o arquivo para a pasta de destino
-
+        destino = os.path.join(pasta_destino, nome_arquivo)
+        shutil.move(caminho_arquivo, destino)
+        print(f"Arquivo {nome_arquivo} movido para {pasta_destino}")
 
     def obter_data_modificacao(self, caminho_arquivo):
         timestamp = os.path.getmtime(caminho_arquivo)
@@ -28,7 +33,10 @@ class OrganizadorPorDataHandler(FileSystemEventHandler):
 
 def organizar_arquivos_existentes(pasta):
     print("Organizando arquivos existentes...")
-
+    for nome_arquivo in os.listdir(pasta):
+        caminho_arquivo = os.path.join(pasta, nome_arquivo)
+        if os.path.isfile(caminho_arquivo):
+            OrganizadorPorDataHandler(pasta).organizar_arquivo(caminho_arquivo)
     print("Organização inicial concluída.")
 
 def monitorar_pasta():
